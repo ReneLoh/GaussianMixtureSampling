@@ -19,15 +19,24 @@ plt.rcParams['axes.titlepad'] = 0
 #%%
 
 
-name = "/home/rene/PhD/Research/code/Integrators/GM/Tconf_OBABO_"   # file name head to read
+# name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/Tconf_OBABO_"   # file name head to read
+# title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Gradient Noise"
+name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/Traj"   # file name head to read
 title = r"GM Sampling, Absolute Error in $T_{{conf}}$"
 
-files = ["h0.050", "MH_SF0_L1_h0.050", "MH_SF0_L10_h0.050", "MH_SF1_L1_h0.050", "MH_SF1_L10_h0.050", "h0.010"]
-labels = [r"OBABO, $h$=0.05",  r"MH-only, $h$=0.05, $L$=1", r"MH-only, $h$=0.05, $L$=10", r"SF, $h$=0.05, $L$=1", r"SF, $h$=0.05, $L$=10", r"OBABO, $h$=0.01",]
+# files = ["h0.050", "MH_SF0_L1_h0.050", "MH_SF0_L10_h0.050", "MH_SF0_L50_h0.050", 
+#          "MH_SF1_L1_h0.050", "MH_SF1_L10_h0.050", "MH_SF1_L50_h0.050", "h0.010"]
+# labels = [r"OBABO, $h$=0.05",  r"MH-only, $h$=0.05, $L$=1", r"MH-only, $h$=0.05, $L$=10", r"MH-only, $h$=0.05, $L$=50", 
+#           r"SF, $h$=0.05, $L$=1", r"SF, $h$=0.05, $L$=10", r"SF, $h$=0.05, $L$=50", r"OBABO, $h$=0.01",]
+# files = ["h0.010","h0.010_gradnoiseB495", "h0.010_gradnoiseB490", "h0.010_gradnoiseB450"]
+# labels = [r"OBABO, $h$=0.01", r"OBABO, $h$=0.01, $B$=99%",r"OBABO, $h$=0.01, $B$=98%", r"OBABO, $h$=0.01, $B$=90%"]
+# files = ["h0.010", "h0.010_gradnoiseB490", "h0.050", "h0.050_gradnoiseB490"]
+# labels = [r"OBABO, $h$=0.01", r"OBABO, $h$=0.01, $B$=98%", r"OBABO, $h$=0.05", r"OBABO, $h$=0.05, $B$=98%"]
+files = ["1 Tconf_OBABO_h0.050", "2 Tconf_OBABO_h0.050", "3 Tconf_OBABO_h0.050"]
+labels = [r"OBABO, $h$=0.05, seed 1", r"OBABO, $h$=0.05, seed 2", r"OBABO, $h$=0.05, seed 3"]
 
-
-colors = ["b", "orange",  "g", "c", "m", "r"]
-# colors = ["c", "m"]
+# colors = ["b", "orange",  "g", "c", "m","pink" , "k","r"]
+colors = [ "c", "m", "b"]
 
 dist_mse = []
 fig, ax = plt.subplots()
@@ -52,7 +61,7 @@ for (file, label, c) in zip(files,labels, colors):
 
 #%%
 
-ax.set_xlabel("$N$")
+ax.set_xlabel("No. of Samples")
 ax.set_ylabel(r"Error")
 fig.suptitle(title)
 plt.legend()

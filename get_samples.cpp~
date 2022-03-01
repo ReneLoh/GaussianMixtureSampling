@@ -17,7 +17,7 @@ using namespace std;
 
 const double PI = 3.141592653589793;
 
-
+int randomseed = 1;
 mt19937 twister;
 
 struct params {
@@ -70,7 +70,6 @@ size_t B = atof(argv[4]);
 size_t L = atoi(argv[5]);
 bool SF = atoi(argv[6]);
 int n_meas = atoi(argv[7]);	// any n_meas steps, store avg. Tconfig until then
-int randomseed = 1
 
 size_t N = N_0/(L+2);
 
