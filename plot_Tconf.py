@@ -19,24 +19,26 @@ plt.rcParams['axes.titlepad'] = 0
 #%%
 
 
-# name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/Tconf_OBABO_"   # file name head to read
-# title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Gradient Noise"
-name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/Traj"   # file name head to read
-title = r"GM Sampling, Absolute Error in $T_{{conf}}$"
+name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/TEST_Tconf_"   # file name head to read
+title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Noisy Gradient"
+# name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/Traj"   # file name head to read
+# title = r"GM Sampling, Absolute Error in $T_{{conf}}$"
 
-# files = ["h0.050", "MH_SF0_L1_h0.050", "MH_SF0_L10_h0.050", "MH_SF0_L50_h0.050", 
-#          "MH_SF1_L1_h0.050", "MH_SF1_L10_h0.050", "MH_SF1_L50_h0.050", "h0.010"]
+# files = ["OBABO_h0.010", "OMBABO_L1_h0.010", "OMBABO_L10_h0.010", "OMBABO_L50_h0.010", "OBABO_h0.010"]
 # labels = [r"OBABO, $h$=0.05",  r"MH-only, $h$=0.05, $L$=1", r"MH-only, $h$=0.05, $L$=10", r"MH-only, $h$=0.05, $L$=50", 
 #           r"SF, $h$=0.05, $L$=1", r"SF, $h$=0.05, $L$=10", r"SF, $h$=0.05, $L$=50", r"OBABO, $h$=0.01",]
-# files = ["h0.010","h0.010_gradnoiseB495", "h0.010_gradnoiseB490", "h0.010_gradnoiseB450"]
-# labels = [r"OBABO, $h$=0.01", r"OBABO, $h$=0.01, $B$=99%",r"OBABO, $h$=0.01, $B$=98%", r"OBABO, $h$=0.01, $B$=90%"]
+# labels = [ r"OMBABO, $h$=0.01, $L$=1", r"OMBABO, $h$=0.01, $L$=10", r"OMBABO, $h$=0.01, $L$=50", r"OBABO, $h$=0.01"]
+# files = ["OBABO_h0.010_gradnoiseB490","OMBABO_L1_h0.010_gradnoiseB490", "OMBABO_L10_h0.010_gradnoiseB490", "OMBABO_L50_h0.010_gradnoiseB490", "OBABO_h0.010"]
+# labels = [r"OBABO, $h$=0.01, $B$=98%", r"OMBABO, $h$=0.01, $L$=1, $B$=98%",r"OMBABO, $h$=0.01, $L$=10, $B$=98%", r"OMBABO, $h$=0.01, $L$=50, $B$=98%", "OBABO, $h$=0.01, $B$=100%"]
 # files = ["h0.010", "h0.010_gradnoiseB490", "h0.050", "h0.050_gradnoiseB490"]
 # labels = [r"OBABO, $h$=0.01", r"OBABO, $h$=0.01, $B$=98%", r"OBABO, $h$=0.05", r"OBABO, $h$=0.05, $B$=98%"]
-files = ["1 Tconf_OBABO_h0.050", "2 Tconf_OBABO_h0.050", "3 Tconf_OBABO_h0.050"]
-labels = [r"OBABO, $h$=0.05, seed 1", r"OBABO, $h$=0.05, seed 2", r"OBABO, $h$=0.05, seed 3"]
+# files = ["1 Tconf_OBABO_h0.050", "2 Tconf_OBABO_h0.050", "3 Tconf_OBABO_h0.050"]
+# labels = [r"OBABO, $h$=0.05, seed 1", r"OBABO, $h$=0.05, seed 2", r"OBABO, $h$=0.05, seed 3"]
+files = ["OMBABO_L10_h0.050"]
+labels = ["test"]
 
 # colors = ["b", "orange",  "g", "c", "m","pink" , "k","r"]
-colors = [ "c", "m", "b"]
+colors = [ "c", "m", "b", "g","r"]
 
 dist_mse = []
 fig, ax = plt.subplots()
@@ -55,7 +57,7 @@ for (file, label, c) in zip(files,labels, colors):
         Tconf = np.array(Tconf)
         # Tconf_avg = [np.mean(Tconf[0:i]) for i in np.arange(1, len(Tconf), n_avg)]
         # ax.plot(np.arange(1, len(Tconf), n_avg), Tconf_avg, c=c, label=label)
-        ax.plot(n_axis[1::], np.abs(Tconf[1::]-2), c=c, label = label)
+        ax.plot(n_axis[1::], np.abs(Tconf[1::]-0.2), c=c, label = label)
 
 
 
