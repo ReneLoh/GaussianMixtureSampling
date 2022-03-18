@@ -14,22 +14,24 @@ def gaussmix(mu1,mu2,x,sigs,a_s):
     g2 = sqrt_PI_inv * a_s[1]/sigs[1] * np.exp(-(x-mu2)**2/(2*sigs[1]**2))
     return g1+g2
 
+def prior_gauss(mu1,mu2,mu1_mean=0,mu2_mean=0,sigma0=5):
+    return 1/(2*np.pi*sigma0**2) * np.exp( -1*( (mu1-mu1_mean)**2+(mu2-mu2_mean)**2 )/(2*sigma0**2) )
 
-def posterior_plot(mu1,mu2, X, likelihood_func, params):
+def posterior_plot(mu1,mu2, X, likelihood_func, likelihood_params, prior_func, prior_params):
     
-    P_prior = 1/100
+    P_prior = prior_func(mu1,mu2, *prior_params)
     # Ls = np.ones((mu1.shape[0], mu2.shape[1]), float)
     Ls = 0
     for x in X:
-        Ls += np.log(likelihood_func(mu1,mu2, x, *params))
+        Ls += np.log(likelihood_func(mu1,mu2, x, *likelihood_params))
         
     return np.log(P_prior) + Ls
 
-def posterior(mu1,mu2, X, likelihood_func, params):
+def posterior(mu1,mu2, X, likelihood_func, likelihood_params, prior_func, prior_params):
     
-    P_prior = 1/100
+    P_prior = prior_func(mu1,mu2, *prior_params)
     # Ls = np.ones((mu1.shape[0], mu2.shape[1]), float)
-    Ls = np.sum(np.log(gaussmix(mu1,mu2, X, *params)))
+    Ls = np.sum(np.log(gaussmix(mu1,mu2, X, *likelihood_params)))
         
     return np.log(P_prior) + Ls
 
