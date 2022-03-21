@@ -19,44 +19,45 @@ plt.rcParams['axes.titlepad'] = 0
 #%%
 
 
-name = "/home/rene/PhD/Research/Integrators/GM/few_data/data/Tconf_"   # file name head to read
+name = "/home/rene/PhD/Research/Integrators/GM/few_data/data/Tconf_SRC_"   # file name head to read
 title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Correction of Disc. Bias"
+title2 = r"GM Sampling, Acceptance Probability, Correction of Disc. Bias"
 # name = "/home/rene/PhD/Research/code/Integrators/GaussianMixtureSampling/Traj"   # file name head to read
 # title = r"GM Sampling, Absolute Error in $T_{{conf}}$"
-h = "0.030"
+h = "0.080"
 L="1"
 files = ["OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFA_L"+L+"_h"+h, 
           "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFA_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
 labels = [r"OBABO, $h$="+h,  r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
 
-
-# files = ["OMBABO_L10_h0.050"]
-# labels = ["test"]
+# files = ["MOBABO_SF0_L"+L+"_h"+h+"_newINIT",]
+# labels = ["MOBABO SF0, $L$="+L]
 
 # colors = ["b", "orange",  "g", "c", "m","pink" , "k","r"]
 colors = ["r", "g", "c", "m", "orange", "b", "yellow"]
 
 dist_mse = []
 fig, ax = plt.subplots()
+fig2, ax2 = plt.subplots()
 
 for (file, label, c) in zip(files,labels, colors):
     print(name+file)
     with open(name+file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=' ')
         Tconf = []
+        acceptP = []
         n_axis = []
         for row in csv_reader:
             n_axis += [int(row[0])]
             Tconf += [float(row[1])]
+            acceptP += [float(row[2])]
         
-        # ax.plot(np.arange(0,len(Tconf)), Tconf)
         Tconf = np.array(Tconf)
-        # Tconf_avg = [np.mean(Tconf[0:i]) for i in np.arange(1, len(Tconf), n_avg)]
-        # ax.plot(np.arange(1, len(Tconf), n_avg), Tconf_avg, c=c, label=label)
-        # ax.plot(n_axis[1::], np.abs(Tconf[1::]-2), c=c, label = label)
-        ax.plot(n_axis, np.abs(Tconf-2), c=c, label = label)
-
+        acceptP = np.array(acceptP)
+  
+        ax.plot(n_axis, np.abs(Tconf-2), c=c,  label = label)
+        ax2.plot(n_axis, acceptP, c=c, linestyle="--", label = label)
 
 
 #%%
@@ -64,5 +65,11 @@ for (file, label, c) in zip(files,labels, colors):
 ax.set_xlabel(r"$N_{{Samples}}$")
 ax.set_ylabel(r"Error")
 fig.suptitle(title)
-plt.legend()
-plt.show()
+ax.legend()
+# fig.legend()
+
+ax2.set_xlabel(r"$N_{{Samples}}$")
+ax2.set_ylabel(r"$P_{{Acceptance}}$")
+fig2.suptitle(title2)
+ax2.legend()
+# fig2.legend()
