@@ -28,21 +28,26 @@ struct forces{
 double fmu1, fmu2;
 };
 
+/*struct measurement{
+vector <double> mu1, mu2, acceptP;
+};*/
+
 struct measurement{
-double mu1, mu2, acceptP;
+vector <double> mu1, mu2;
 };
+
 
 double likelihood_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, const double x);
 double U_pot_GM( const double T, const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
 					  const vector <double>& Xdata, const double sig0);
 forces get_noisy_force_GM(const double T, const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
 					  			  vector <double>& Xdata, const size_t B, const double sig0);
-vector <measurement> OBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	
+measurement OBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	
 									const size_t B, const double sig1, const double sig2, const double a1, const double a2, const size_t n_meas, const double sig0);
-/*vector <measurement> MOBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	const size_t B, 
-										const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);
-vector <measurement> OMBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
-									 const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);		*/		
+/*measurement MOBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	const size_t B, 
+								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);
+measurement OMBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
+								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);*/
 vector <double> read_dataset(string datafile);
 
 
@@ -61,6 +66,10 @@ params param0{-4,3,0,0};	// initial conditions
 double T = 1;
 double gamma = 1;
 string datafile = "GM_data_500.csv";
+bool tavg = true;								// time average after ensemble average?
+int n = 5e5; 									// time average over last n values
+int ndist = 100000;							// write out any ndist-th result entry to file 
+//int ndist = 1;
 
 int method = atoi(argv[1]);   // must be 1 (OBABO), 2 (MOBABO), or 3 (OMBABO)
 size_t L = atoi(argv[2]);
@@ -68,7 +77,7 @@ string SF = argv[3];				// must be "A", "R", or "0"
 double h = atof(argv[4]);
 size_t N_0 = atol(argv[5]);
 size_t B = atof(argv[6]);
-int n_meas = atoi(argv[7]);	// any n_meas steps, store avg. Tconfig until then
+int n_meas = atoi(argv[7]);	// store sample any n_meas steps (governs RAM used during execution, as opposed to ndist which governs size of output file)
 
 //size_t N = N_0/(L+2);
 size_t N = N_0;
@@ -88,7 +97,7 @@ seq.generate(seeds.begin(), seeds.end());
 twister.seed(seeds.at(0)); 
 
 string label;
-vector < measurement > results; // stores Tconfigs and acceptance probs.
+measurement results; // stores mus and acceptance probs.
 if ( method == 1 ){
 	results = OBABO_simu(param0, N_0, h, T, gamma, Xdata, B, sig1, sig2, a1, a2, n_meas, sig0);
 	label = "OBABO";
@@ -106,23 +115,50 @@ else {
 	return 0;
 }
 
-// average over results of different processors and print out file
+cout<<"rank "<<rank<<" reached barrier"<<endl;
 MPI_Barrier(comm);
-vector < measurement > results_avg(results.size());
-for(int i=results_avg.size()-1; i>=0; --i){															// iterate backwards so that memory of vector element can be freed after reducing
-	MPI_Reduce(&results[i].mu1, &results_avg[i].mu1, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
-	MPI_Reduce(&results[i].mu2, &results_avg[i].mu2, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
-	MPI_Reduce(&results[i].acceptP, &results_avg[i].acceptP, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
-	results.pop_back();
-	results_avg[i].mu1 /= nr_proc;
-	results_avg[i].mu2 /= nr_proc;
-	results_avg[i].acceptP /= nr_proc;
-}	
+
+// average over results of different processors and print out file
+measurement results_avg;
+if( rank==0 ){
+	 results_avg.mu1.resize(results.mu1.size());  // do only on rank 0 to save RAM 
+	 results_avg.mu2.resize(results.mu2.size());
+}	 
+
+MPI_Reduce(&results.mu1[0], &results_avg.mu1[0], results.mu1.size(), MPI_DOUBLE, MPI_SUM, 0, comm);
+MPI_Reduce(&results.mu2[0], &results_avg.mu2[0], results.mu2.size(), MPI_DOUBLE, MPI_SUM, 0, comm);
+//MPI_Reduce(&results[0].acceptP, &results_avg.acceptP[0], results.acceptP.size(), MPI_DOUBLE, MPI_SUM, 0, comm);
+
+for (int i=0; i<results_avg.mu1.size(); ++i){
+	results_avg.mu1[i] /= nr_proc;
+	results_avg.mu2[i] /= nr_proc;
+//	results_avg.acceptP[i] /= nr_proc;
+}
 
 if( rank==0 ){	
+
+	// time-average results
+	if( tavg == true ){	
+		cout << "Time averaging...\n"; 
+		
+		for(int i=results_avg.mu1.size()-1; i>=0; i-=ndist){
+			if(i<=n-1) n=i;
+			for(int j=i-n; j<i; ++j){
+				results_avg.mu1[i] += results_avg.mu1[j];
+				results_avg.mu2[i] += results_avg.mu2[j];
+//				results_avg.acceptP[i] += results_avg.acceptP[j];					
+			}
+				results_avg.mu1[i] /= n+1 ;
+				results_avg.mu2[i] /= n+1 ;  		
+//				results_avg.acceptP[i] /= n+1 ; 				
+		}	
+		
+	}			
+
+	
+	// Print results
 	stringstream stream, stream2;
 	string final_label;
-
 	stream << std::fixed << std::setprecision(3) << h;
 	if(B==Xdata.size()) final_label = "mus_" + label + "_h"+stream.str();
 	else 					  final_label = "mus_" + label + "_h"+stream.str()+"_gradnoiseB"+to_string(B);			 
@@ -130,8 +166,9 @@ if( rank==0 ){
 	ofstream file {final_label};
 
 	cout<<"Writing to file...\n";
-	for(int i=0; i<results_avg.size(); ++i){
-		file << i*n_meas << " " << results_avg.at(i).mu1 << " " << results_avg.at(i).mu2 << " " << results_avg.at(i).acceptP << "\n";
+	for(int i=0; i<results_avg.mu1.size(); i+=ndist){
+//		file << i*n_meas << " " << results_avg.mu1.at(i) << " " << results_avg.mu2.at(i) << " " << results_avg.acceptP.at(i) << "\n";
+		file << i*n_meas << " " << results_avg.mu1.at(i) << " " << results_avg.mu2.at(i) << "\n";
 	}
 	file.close();
 }
@@ -143,7 +180,7 @@ return 0;
 }
 
 
-vector <measurement> OBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	
+measurement OBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	
 									const size_t B, const double sig1, const double sig2, const double a1, const double a2, const size_t n_meas, const double sig0){
     
    cout<<"Starting OBABO simulation..."<<endl;
@@ -152,15 +189,17 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
    params theta = param0; 
 	forces force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, B, sig0);    // HERE FORCES!!!!
 
-	measurement meas{theta.mu1, theta.mu2, 1};
-	vector <measurement> results(0);
-	results.push_back(meas);
+//	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1), vector <double> (0)};		
+	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1)};
+	meas.mu1[0] = theta.mu1;
+	meas.mu2[0] = theta.mu2;
+	int k=1;
 
    double a = exp(-1*gamma*h);      
 
 	double Rn1, Rn2;
 	normal_distribution<> normal{0,1}; 	
-	for(size_t i=1; i<N; ++i){
+	for(size_t i=1; i<=N; ++i){
 		Rn1 = normal(twister);
 		Rn2 = normal(twister);
 		theta.p1 = sqrt(a)*theta.p1 + sqrt((1-a)*T)*Rn1 + 0.5*h*force.fmu1;  // O+B step		
@@ -179,19 +218,20 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
 		theta.p1 = sqrt(a)*theta.p1 + sqrt((1-a)*T)*Rn1;							 // O step
 		theta.p2 = sqrt(a)*theta.p2 + sqrt((1-a)*T)*Rn2;
 
-		if(i%n_meas ==0 ) {
-			meas.mu1 = theta.mu1;			
-			meas.mu2 = theta.mu2;	
-			results.push_back(meas);		
+		if(i%n_meas == 0 ) {
+			meas.mu1[k] = theta.mu1;			
+			meas.mu2[k] = theta.mu2;	
+			++k;		
 		}
 		if(i%int(1e6)==0) cout<<"Iteration "<<i<<" done!"<<endl;	
 	}
-	 
+
+	
 	auto t2 = chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::seconds>(t2 - t1);
 	cout<<"Execution took "<< ms_int.count() << " seconds!"<<endl;
 	    
-   return results;
+   return meas;
 
 }
 
@@ -331,8 +371,8 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
 }*/
 
 
-/*vector <measurement> MOBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
-									 const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0){
+/*measurement MOBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
+								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0){
    
    cout<<"Starting MOBABO + SF" + SF + " simulation..."<<endl;
 	auto t1 = chrono::high_resolution_clock::now();
@@ -341,11 +381,11 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
 
 	forces force_curr = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    // HERE FORCES!!!!
 
-	double Tconfig = -1*(force_curr.fmu1 * theta_curr.mu1  +  force_curr.fmu2 * theta_curr.mu2) ;
-	measurement meas{Tconfig, 0};
-	vector <measurement> results(0);
-	results.push_back(meas);
-	double Tconfig_sum = Tconfig;
+//	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1), vector <double> (0)};		
+	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1)};
+	meas.mu1[0] = theta.mu1;
+	meas.mu2[0] = theta.mu2;
+	int k=1;
 
    double a = exp(-1*gamma*h);      
 	
@@ -357,7 +397,7 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
 	params theta;
 	forces force; 
 
-	for(size_t i=1; i<N; ++i){
+	for(size_t i=1; i<=N; ++i){
 		theta = theta_curr;
 		force = force_curr;		
 		
@@ -397,13 +437,11 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
 		MH = exp( (-1/T) * (U1 - U0 + kin_energy) );					
 		
 		if( uniform(twister) < min(1., MH) ){ 												// ACCEPT SAMPLE
-			Tconfig = -1*(force.fmu1 * theta.mu1  +  force.fmu2 * theta.mu2);
-//			Tconfig_sum += Tconfig;
 			if(i%n_meas == 0 ) {
-//				meas.Tconfig = Tconfig_sum	/ (i+1);
-				meas.Tconfig = Tconfig;
-				meas.acceptP = min(1., MH);	
-				results.push_back(meas);	
+				meas.mu1[k] = theta.mu1;			
+				meas.mu2[k] = theta.mu2;		
+				meas.acceptP[k] = min(1., MH);	
+				++k;			
 			}			
 
 			theta_curr = theta;
@@ -415,12 +453,12 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
         
 		}
 		else{ 																				 // REJECT SAMPLE		
-//			Tconfig_sum += Tconfig;
+
 			if(i%n_meas == 0 ) {
-//				meas.Tconfig = Tconfig_sum	/ (i+1);
-				meas.Tconfig = Tconfig;
-				meas.acceptP = min(1., MH);	
-				results.push_back(meas);	
+				meas.mu1[k] = theta_curr.mu1;			
+				meas.mu2[k] = theta_curr.mu2;	
+				meas.acceptP[k] = min(1., MH);	
+				++k;	
 			}	
 			
 			theta_curr.p1 = SF=="R" ? -1*theta_curr.p1 : theta_curr.p1;		// sign flip (SF) 		
@@ -442,8 +480,8 @@ vector <measurement> OBABO_simu(const params param0, const size_t N, const doubl
 
 
 
-vector <measurement> OMBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
-									 const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0){
+measurement OMBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
+								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0){
    
    cout<<"Starting OMBABO + SF" + SF + " simulation..."<<endl;
 	auto t1 = chrono::high_resolution_clock::now();
@@ -451,11 +489,11 @@ vector <measurement> OMBABO_simu(const params param0, const size_t N, const doub
    params theta_curr = param0; 
 	forces force_curr = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    // HERE FORCES!!!!
 
-	double Tconfig = -1*(force_curr.fmu1 * theta_curr.mu1  +  force_curr.fmu2 * theta_curr.mu2) ;
-	measurement meas{Tconfig, 0};
-	vector <measurement> results(0);
-	results.push_back(meas);
-	double Tconfig_sum = Tconfig;
+//	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1), vector <double> (0)};		
+	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1)};
+	meas.mu1[0] = theta.mu1;
+	meas.mu2[0] = theta.mu2;
+	int k=1;
 
    double a = exp(-1*gamma*h);      
 	
@@ -467,7 +505,7 @@ vector <measurement> OMBABO_simu(const params param0, const size_t N, const doub
 	params theta;
 	forces force; 
 
-	for(size_t i=1; i<N; ++i){
+	for(size_t i=1; i<=N; ++i){
 		
 		Rn1 = normal(twister);
 		Rn2 = normal(twister);
@@ -503,14 +541,12 @@ vector <measurement> OMBABO_simu(const params param0, const size_t N, const doub
 		MH = exp( (-1/T) * (U1+K1 - (U0+K0)) );					
 		
 		if( uniform(twister) < min(1., MH) ){ 						// ACCEPT SAMPLE
-			
-			Tconfig = -1*(force.fmu1 * theta.mu1  +  force.fmu2 * theta.mu2);
-//			Tconfig_sum += Tconfig;
+
 			if(i%n_meas == 0 ) {
-//				meas.Tconfig = Tconfig_sum	/ (i+1);
-				meas.Tconfig = Tconfig;
-				meas.acceptP = min(1., MH);	
-				results.push_back(meas);	
+				meas.mu1[k] = theta.mu1;			
+				meas.mu2[k] = theta.mu2;		
+				meas.acceptP[k] = min(1., MH);	
+				++k;			
 			}			
 	
 			theta_curr = theta;
@@ -524,12 +560,11 @@ vector <measurement> OMBABO_simu(const params param0, const size_t N, const doub
 		}
 		else{  // REJECT SAMPLE
 			
-//			Tconfig_sum += Tconfig;
 			if(i%n_meas == 0 ) {
-//				meas.Tconfig = Tconfig_sum	/ (i+1);
-				meas.Tconfig = Tconfig;
-				meas.acceptP = min(1., MH);	
-				results.push_back(meas);	
+				meas.mu1[k] = theta_curr.mu1;			
+				meas.mu2[k] = theta_curr.mu2;	
+				meas.acceptP[k] = min(1., MH);	
+				++k;		
 			}	
 						
 			theta_curr.p1 = SF=="R" ? -1*theta_curr.p1 : theta_curr.p1;		// sign flip (SF)  

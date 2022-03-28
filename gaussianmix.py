@@ -29,30 +29,30 @@ sigs = [3,0.5]
 a_s = [0.8, 0.2]
 N = 500
 X = GM.create_data(mus_true, sigs, a_s, N)
-GM.write_to_file(X, "GM_data_500.csv")
+# GM.write_to_file(X, "GM_data_5000.csv")
 
-xrange = (-12.5,12.5)
-plt.hist(X,100,xrange, density=True, label="Data Distribution") 
-x = np.linspace(xrange[0], xrange[1],1000)
-y = GM.gaussmix(*mus_true, x, sigs,a_s)
-plt.plot(x,y, label="Underlying Density")
+# xrange = (-12.5,12.5)
+# plt.hist(X,100,xrange, density=True, label="Data Distribution") 
+# x = np.linspace(xrange[0], xrange[1],1000)
+# y = GM.gaussmix(*mus_true, x, sigs,a_s)
+# plt.plot(x,y, label="Underlying Density")
 
 #prior specifics
 prior_func = GM.prior_gauss
-(m1,m2,sig0) = (0,0,6)
+(m1,m2,sig0) = (0,0,5)
 prior_params = (m1,m2,sig0)
 
 # # evaluate the posterior on grid
-# # mu1, mu2 = (np.linspace(-7.5,7.5,1000), np.linspace(-7.5,7.5,1000))
-# mu1, mu2 = (np.linspace(-5,-1,1000), np.linspace(1,5,1000))
-# POST = GM.posterior_plot(mu1[:,None], mu2[None,:], X, GM.gaussmix, (sigs, a_s), prior_func, prior_params)
-# plt.imshow(POST, cmap=cm.jet, extent=((mu2[0], mu2[-1], mu1[-1], mu1[0])))
-# plt.clim(POST.max()-20,POST.max())
-# plt.colorbar()
-# plt.xlabel(r"$\mu_{2}$")
-# plt.ylabel(r"$\mu_{1}$")
-# mu1_star = mu1[ np.where( abs(POST-POST.max())<0.0001 )[0][0] ]
-# mu2_star = mu2[ np.where( abs(POST-POST.max())<0.0001 )[1][0] ]
+# mu1, mu2 = (np.linspace(-7.5,7.5,1000), np.linspace(-7.5,7.5,1000))
+mu1, mu2 = (np.linspace(-5,-1,1000), np.linspace(1,5,1000))
+POST = GM.posterior_plot(mu1[:,None], mu2[None,:], X, GM.gaussmix, (sigs, a_s), prior_func, prior_params)
+plt.imshow(POST, cmap=cm.jet, extent=((mu2[0], mu2[-1], mu1[-1], mu1[0])))
+plt.clim(POST.max()-20,POST.max())
+plt.colorbar()
+plt.xlabel(r"$\mu_{2}$")
+plt.ylabel(r"$\mu_{1}$")
+mu1_star = mu1[ np.where( abs(POST-POST.max())<0.0001 )[0][0] ]
+mu2_star = mu2[ np.where( abs(POST-POST.max())<0.0001 )[1][0] ]
 
 
 #%% simulation params
