@@ -397,6 +397,7 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 	double kin_energy, MH, U1, U0;   // kin. energies are necessary for MH criterion
 	params theta;
 	forces force; 
+	int COUNT = 0; 			// JUST FOR DEBUGGING
 
 	for(size_t i=1; i<=N; ++i){
 		theta = theta_curr;
@@ -471,7 +472,7 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 		if(i%int(1e6)==0) cout<<"Iteration "<<i<<" done!"<<endl;
 		
 	}
-
+	cout<<"mu2<0  "<<COUNT<<" times!"<<endl;
 	cout <<"Acceptance probability was "<<float(ctr)/N<<endl;
 	auto t2 = chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::seconds>(t2 - t1);
