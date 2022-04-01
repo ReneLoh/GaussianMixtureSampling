@@ -28,37 +28,44 @@ name = "/home/rene/PhD/Research/Integrators/GM/few_data/data/mus_"   # file name
 # title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Correction of Grad. Noise"
 # title = r"GM Sampling, $|\theta \cdot \nabla U(\theta) -N_{{d}}T|$"
 # title = r"GM Sampling, t-aveaged $|\mu_{{i}}-\mu_{{i}}^{{*}}|$, Disc. Bias."
-title = r"GM Sampling, 500 Data Points, Grad. Noise"
+title = r"GM Sampling, 500 Data Points, Disc. Bias"
+# title = r"GM Sampling, 500 Data Points, Grad. Noise"
 title2 = r"GM Sampling, 500 Data Points, Grad. Noise"
 
 
 mus_true = np.array([-2.5, 2.5])
-post_argmax = np.array([-2.7817817817817816, 2.6536536536536537 ])  # argmax of posterior
-h = "0.010"
+post_argmax = np.array([-2.7817817817817816, 2.6536536536536537 ])  # argmax of posterior, 500 pts
+# post_argmax = np.array([-2.4734734734734736, 2.4734734734734736 ])  # argmax of posterior, 5000 pts
+h = "0.100"
 avg = "99"
 Tconf_star = 1
 L="10"
 
-# files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFA_L"+L+"_h"+h, 
-#           "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFA_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
+files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFA_L"+L+"_h"+h, 
+          "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFA_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
 # grad = "_gradnoiseB375"
 # files = [i +grad+"_avg"+avg for i in files]
-# files[0]="OBABO_h"+h+"_avg99"
-# # labels = [r"OBABO, $h$="+h, r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
-# #           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
+files = [i +"_avg"+avg for i in files]
+files[0]="OBABO_h0.010_avg99"
+labels = [r"OBABO, $h$=0.01", r"OBABO, $h$="+h, r"MOBABO SF0, $h$="+h+", $L$="+L, r"MOBABO SFA, $h$="+h+", $L$="+L, 
+          "MOBABO SFR, $h$="+h+", $L$="+L, 
+          r"OMBABO SF0, $h$="+h+", $L$="+L, r"OMBABO SFA, $h$="+h+", $L$="+L, r"OMBABO SFR, $h$="+h+", $L$="+L]
 # labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$75%", r"MOBABO SF0, $L$="+L+", $B=$75%", 
 #           r"MOBABO SFA, $L$="+L+", $B=$75%", "MOBABO SFR, $L$="+L+", $B=$75%", 
 #           r"OMBABO SF0, $L$="+L+", $B=$75%", r"OMBABO SFA, $L$="+L+", $B=$75%", r"OMBABO SFR, $L$="+L+", $B=$75%"]
 
 ### WITHOUT SFA
-files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
-grad = "_gradnoiseB250"
-files = [i +grad+"_avg"+avg for i in files]
-files[0]="OBABO_h"+h+"_avg99"
-# labels = [r"OBABO, $h$="+h, r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
-#           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
-labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$50%", r"MOBABO SF0, $L$="+L+", $B=$50%", 
-          "MOBABO SFR, $L$="+L+", $B=$50%", r"OMBABO SF0, $L$="+L+", $B=$50%", r"OMBABO SFR, $L$="+L+", $B=$50%"]
+# # files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
+# files = ["OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
+# grad = "_gradnoiseB50"
+# files = [i +grad+"_avg"+avg for i in files]
+# files[0]="OBABO_h"+h+"_avg"+avg
+# # labels = [r"OBABO, $h$="+h, r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
+# #           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
+# # labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$10%", r"MOBABO SF0, $L$="+L+", $B=$10%", 
+# #           "MOBABO SFR, $L$="+L+", $B=$10%", r"OMBABO SF0, $L$="+L+", $B=$10%", r"OMBABO SFR, $L$="+L+", $B=$10%"]
+# labels = [r"OBABO, $h$="+h + ", Full Gradient", r"MOBABO SF0, $L$="+L+", $B=$10%", 
+#           "MOBABO SFR, $L$="+L+", $B=$10%", r"OMBABO SF0, $L$="+L+", $B=$10%", r"OMBABO SFR, $L$="+L+", $B=$10%"]
 ###
 
 # files = ["small_OBABO_h"+h, "small_OBABO_h"+h+"_gradnoiseB490", "large_OBABO_h"+h, "large_OBABO_h"+h+"_gradnoiseB4900"]
@@ -70,6 +77,7 @@ labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$50%", r"M
 
 # hs = ["0.001", "0.010", "0.100"]
 # files = ["OBABO_h"+h + "_avg99" for h in hs]
+# files[-1] = "OBABO_h0.100_avg33"
 # labels = [r"OBABO, $h=0.001$", r"OBABO, $h=0.01$", r"OBABO, $h=0.1$"]
 
 # files = ["MOBABO_SF0_L"+L+"_h"+h+"_newINIT",]
@@ -78,7 +86,8 @@ labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$50%", r"M
 # colors = ["b", "orange",  "g", "c", "m","pink" , "k","r"]
 # colors = ["r", "g", "c", "m", "orange", "b", "yellow"]
 colors = ["r", "k", "g", "c", "m", "orange", "b", "yellow"]  # in case of two OBABO (second color)
-colors = ["r", "k", "g", "m", "orange", "yellow"]  # in case of two OBABO (second color), w/o SFA
+# colors = ["r", "k", "g", "m", "orange", "yellow"]  # in case of two OBABO (second color), w/o SFA
+# colors = ["r", "g", "m", "orange", "yellow"]  # in case of one OBABO (second color), w/o SFA
 
 # fig, ax = plt.subplots()  # for Tconf
 fig, ax = plt.subplots(1,2)    # for mu_i
