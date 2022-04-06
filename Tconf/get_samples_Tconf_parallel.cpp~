@@ -40,10 +40,10 @@ forces get_noisy_force_GM(const double T, const params& theta, const double sig1
 					  			  vector <double>& Xdata, const size_t B, const double sig0);
 measurement OBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	
 									const size_t B, const double sig1, const double sig2, const double a1, const double a2, const size_t n_meas, const double sig0);
-/*measurement MOBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	const size_t B, 
+measurement MOBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	const size_t B, 
 								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);
 measurement OMBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata, const size_t B,
-								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);*/
+								const double sig1, const double sig2, const double a1, const double a2, const size_t L, const string SF, const size_t n_meas, const double sig0);
 vector <double> read_dataset(string datafile);
 
 
@@ -61,7 +61,7 @@ params param0{-4,3,0,0};	// initial conditions
 
 double T = 1;
 double gamma = 1;
-string datafile = "GM_data_500.csv";
+string datafile = "GM_data_5000.csv";
 bool tavg = true;								// time average after ensemble average?
 int n = 5e5; 									// time average over last n values
 int ndist = 10000;							// write out any ndist-th result entry to file 
@@ -98,14 +98,14 @@ if ( method == 1 ){
 	results = OBABO_simu(param0, N_0, h, T, gamma, Xdata, B, sig1, sig2, a1, a2, n_meas, sig0);
 	label = "OBABO";
 }
-/*else if ( method == 2 ){
+else if ( method == 2 ){
 	results = MOBABO_simu(param0, N, h, T, gamma, Xdata, B, sig1, sig2, a1, a2, L, SF, n_meas, sig0);
 	label = "MOBABO_SF" + SF +"_L" + to_string(L);
 }
 else if ( method == 3 ){
 	results = OMBABO_simu(param0, N, h, T, gamma, Xdata, B, sig1, sig2, a1, a2, L, SF, n_meas, sig0);
 	label = "OMBABO_SF" + SF +"_L" + to_string(L);
-}*/
+}
 else {
 	cout << "No valid method number" << endl;
 	return 0;
@@ -466,7 +466,7 @@ double U_pot_GM( const double T, const params& theta, const double sig1, const d
 		U += log( likelihood_GM(theta, sig1, sig2, a1, a2, Xdata[i]) );
 	}
 	U -= (theta.mu1*theta.mu1 + theta.mu2*theta.mu2)/(2*sig0*sig0) + log(2*PI*sig0*sig0);
-	return -1*T*U;					  
+	return -1*U;					  
 }
 
 
@@ -488,11 +488,11 @@ forces get_noisy_force_GM(const double T, const params& theta, const double sig1
 	}
 
 
-	F.fmu1 *= T*a1/(sqrt(2*PI)*sig1*sig1*sig1) * scale;
-	F.fmu2 *= T*a2/(sqrt(2*PI)*sig2*sig2*sig2) * scale;
+	F.fmu1 *= a1/(sqrt(2*PI)*sig1*sig1*sig1) * scale;
+	F.fmu2 *= a2/(sqrt(2*PI)*sig2*sig2*sig2) * scale;
 	
-	F.fmu1 -= T/(sig0*sig0) * theta.mu1;   // prior part
-	F.fmu2 -= T/(sig0*sig0) * theta.mu2;
+	F.fmu1 -= theta.mu1/(sig0*sig0);   // prior part
+	F.fmu2 -= theta.mu2/(sig0*sig0);
 
 	return F;
 }

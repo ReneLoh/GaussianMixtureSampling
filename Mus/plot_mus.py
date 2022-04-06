@@ -22,7 +22,7 @@ mp.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
 
 
 # name = "/home/rene/PhD/Research/Integrators/GM/few_data/data/Tconf_"   # file name head to read
-name = "/home/rene/PhD/Research/Integrators/GM/few_data/data/mus_"   # file name head to read
+name = "/home/rene/PhD/Research/Integrators/GM/much_data/data/mus_"   # file name head to read
 # title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Correction of Disc. Bias"
 # title2 = r"GM Sampling, Acceptance Probability, Correction of Disc. Bias"
 # title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Correction of Grad. Noise"
@@ -34,25 +34,30 @@ title2 = r"GM Sampling, 500 Data Points, Grad. Noise"
 
 
 mus_true = np.array([-2.5, 2.5])
-post_argmax = np.array([-2.7817817817817816, 2.6536536536536537 ])  # argmax of posterior, 500 pts
-# post_argmax = np.array([-2.4734734734734736, 2.4734734734734736 ])  # argmax of posterior, 5000 pts
+# post_argmax = np.array([-2.7817817817817816, 2.6536536536536537 ])  # argmax of posterior, 500 pts
+post_argmax = np.array([-2.4734734734734736, 2.4734734734734736 ])  # argmax of posterior, 5000 pts
 h = "0.100"
 avg = "99"
 Tconf_star = 1
 L="10"
 
-files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFA_L"+L+"_h"+h, 
-          "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFA_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
-# grad = "_gradnoiseB375"
-# files = [i +grad+"_avg"+avg for i in files]
-files = [i +"_avg"+avg for i in files]
-files[0]="OBABO_h0.010_avg99"
-labels = [r"OBABO, $h$=0.01", r"OBABO, $h$="+h, r"MOBABO SF0, $h$="+h+", $L$="+L, r"MOBABO SFA, $h$="+h+", $L$="+L, 
-          "MOBABO SFR, $h$="+h+", $L$="+L, 
-          r"OMBABO SF0, $h$="+h+", $L$="+L, r"OMBABO SFA, $h$="+h+", $L$="+L, r"OMBABO SFR, $h$="+h+", $L$="+L]
+
+# files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFA_L"+L+"_h"+h, 
+#           "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFA_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
+# # grad = "_gradnoiseB375"
+# # files = [i +grad+"_avg"+avg for i in files]
+# files = [i +"_avg"+avg for i in files]
+# files[0]="OBABO_h0.010_avg99"
+# labels = [r"OBABO, $h$=0.01", r"OBABO, $h$="+h, r"MOBABO SF0, $h$="+h+", $L$="+L, r"MOBABO SFA, $h$="+h+", $L$="+L, 
+#           "MOBABO SFR, $h$="+h+", $L$="+L, 
+#           r"OMBABO SF0, $h$="+h+", $L$="+L, r"OMBABO SFA, $h$="+h+", $L$="+L, r"OMBABO SFR, $h$="+h+", $L$="+L]
 # labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$75%", r"MOBABO SF0, $L$="+L+", $B=$75%", 
 #           r"MOBABO SFA, $L$="+L+", $B=$75%", "MOBABO SFR, $L$="+L+", $B=$75%", 
 #           r"OMBABO SF0, $L$="+L+", $B=$75%", r"OMBABO SFA, $L$="+L+", $B=$75%", r"OMBABO SFR, $L$="+L+", $B=$75%"]
+
+
+files = ["OBABO_h0.075_avg33", "OBABO_h0.010_avg99", "OBABO_h0.001_avg99"]
+labels = [r"OBABO, h=0.075", "OBABO, h=0.01", "OBABO, h=0.001"]
 
 ### WITHOUT SFA
 # # files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]

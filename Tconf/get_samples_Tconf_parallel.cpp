@@ -59,7 +59,7 @@ double sig0 = 5;			// Gauss. prior std.dev.
 params param0{-4,3,0,0};	// initial conditions
 
 
-double T = 1;
+double T = 5;
 double gamma = 1;
 string datafile = "GM_data_500.csv";
 bool tavg = true;								// time average after ensemble average?
@@ -466,7 +466,7 @@ double U_pot_GM( const double T, const params& theta, const double sig1, const d
 		U += log( likelihood_GM(theta, sig1, sig2, a1, a2, Xdata[i]) );
 	}
 	U -= (theta.mu1*theta.mu1 + theta.mu2*theta.mu2)/(2*sig0*sig0) + log(2*PI*sig0*sig0);
-	return -1*T*U;					  
+	return -1*U;					  
 }
 
 
@@ -488,11 +488,11 @@ forces get_noisy_force_GM(const double T, const params& theta, const double sig1
 	}
 
 
-	F.fmu1 *= T*a1/(sqrt(2*PI)*sig1*sig1*sig1) * scale;
-	F.fmu2 *= T*a2/(sqrt(2*PI)*sig2*sig2*sig2) * scale;
+	F.fmu1 *= a1/(sqrt(2*PI)*sig1*sig1*sig1) * scale;
+	F.fmu2 *= a2/(sqrt(2*PI)*sig2*sig2*sig2) * scale;
 	
-	F.fmu1 -= T/(sig0*sig0) * theta.mu1;   // prior part
-	F.fmu2 -= T/(sig0*sig0) * theta.mu2;
+	F.fmu1 -= theta.mu1/(sig0*sig0);   // prior part
+	F.fmu2 -= theta.mu2/(sig0*sig0);
 
 	return F;
 }
