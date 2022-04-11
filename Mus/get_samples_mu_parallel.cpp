@@ -1,3 +1,11 @@
+/* 
+This script samples the posterior density of the means of two independent Gaussians used to build a 1D Gaussian mixture model.
+It uses Metropolized Langevin integrators (given by the "OBABO" scheme) and uses full gradients or stochastic gradients obtained by data subsampling.
+Using K processors, it draws K trajectories simultaneously, and averages over them (also in time) before printing out the results.
+
+This version tracks the two means and the Metropolis acceptance probability in time.
+*/
+
 #include <cmath>
 #include <iostream>
 #include <vector>

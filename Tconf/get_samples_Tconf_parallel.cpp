@@ -1,3 +1,12 @@
+/* 
+This script samples the posterior density of the means of two independent Gaussians used to build a 1D Gaussian mixture model.
+It uses Metropolized Langevin integrators (given by the "OBABO" scheme) and uses full gradients or stochastic gradients obtained by data subsampling.
+Using K processors, it draws K trajectories simultaneously, and averages over them (also in time) before printing out the results.
+
+This version tracks the configurational temperature as an observable, and the Metropolis acceptance probability in time.
+*/
+
+
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -65,7 +74,7 @@ string datafile = "GM_data_500.csv";
 bool tavg = true;								// time average after ensemble average?
 int n = 5e5; 									// time average over last n values
 int ndist = 10000;							// write out any ndist-th result entry to file 
-//int ndist = 1;
+
 
 int method = atoi(argv[1]);   // must be 1 (OBABO), 2 (MOBABO), or 3 (OMBABO)
 size_t L = atoi(argv[2]);

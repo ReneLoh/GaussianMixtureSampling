@@ -1,5 +1,5 @@
-# This script reads and plots configurational temperature data from csv file
-# (single column of floats).
+# This script reads and plots sampling data from csv file.
+# 3 columns. 1) Iteration, 2) Configurational Temperature, 3) Metropolis Acceptance Probability
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,92 +21,49 @@ mp.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
 #%%
 
 
-# name = "/home/rene/PhD/Research/Integrators/GM/few_data/data/Tconf_"   # file name head to read
-name = "/home/rene/PhD/Research/Integrators/GM/much_data/data/Tconf_"   # file name head to read
-# title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Correction of Disc. Bias"
-# title2 = r"GM Sampling, Acceptance Probability, Correction of Disc. Bias"
-# title = r"GM Sampling, Absolute Error in $T_{{conf}}$, Correction of Grad. Noise"
-# title = r"GM Sampling, $|\theta \cdot \nabla U(\theta) -N_{{d}}T|$"
-# title = r"GM Sampling, t-aveaged $|\mu_{{i}}-\mu_{{i}}^{{*}}|$, Disc. Bias."
-title = r"GM Sampling, 5000 Data Points, Grad. Noise"
-# title = r"GM Sampling, 500 Data Points, Grad. Noise"
-title2 = r"GM Sampling, 5000 Data Points, Grad. Noise"
+name = "/home/rene/PhD/Research/Integrators/GM/few_data/Tconf/data/Tconf_"   # head of file name to be read
+title = r"GM Sampling, 500 Data Points, Grad. Noise"   # plot titles
+title2 = r"GM Sampling, 500 Data Points, Grad. Noise"
 
 
-h = "0.005"
-Tconf_star = 1
+# simulation parameters specifying file names to be read
+h = "0.010"
+Tconf_star = 0.1
 L="10"
-B="500"
-Bperc = "10%"
+B="250"
+grad = "_gradnoiseB"+B
+Bperc = "50%"
 avg = "99"
 
-files = ["OBABO_h0.075_avg99", "OBABO_h0.010_avg99", "OBABO_h0.001_avg99", "OBABO_h0.0005_avg99"]
-labels = [r"OBABO, h=0.075", "OBABO, h=0.01", "OBABO, h=0.001", "OBABO, h=0.0005"]
+# ## manual entered file names and plot labels
+# files = ["OBABO_h0.075_avg99", "OBABO_h0.010_avg99", "OBABO_h0.001_avg99", "OBABO_h0.0005_avg99"]
+# labels = [r"OBABO, h=0.075", "OBABO, h=0.01", "OBABO, h=0.001", "OBABO, h=0.0005"]
 
-files = ["OBABO_h0.075_avg99", "OBABO_h0.010_avg99", "OBABO_h0.0050_avg99",  "OBABO_h0.0010_avg99"]
-labels = [r"OBABO, h=0.075", "OBABO, h=0.01", "OBABO, h=0.005", "OBABO, h=0.001"]
+# files = ["OBABO_h0.075_avg99", "OBABO_h0.010_avg99", "OBABO_h0.0050_avg99",  "OBABO_h0.0010_avg99"]
+# labels = [r"OBABO, h=0.075", "OBABO, h=0.01", "OBABO, h=0.005", "OBABO, h=0.001"]
 
 
-# files = ["OBABO", "OBABO", "MOBABO_SF0_L"+L, "MOBABO_SFR_L"+L, 
-#          "OMBABO_SF0_L"+L, "OMBABO_SFR_L"+L]
-# files = [i +"_h"+h+"_gradnoiseB"+B+"_avg99" for i in files]
-# files[0]="OBABO_h"+h+"_avg33"
-# labels = [r"OBABO, $h$="+h+", $B=$100%", "OBABO, $h$="+h+", $B=$"+Bperc+"%", 
-#           "MOBABO SF0, $h$="+h+", $L=$"+L+", $B=$"+Bperc+"%", "MOBABO SFR, $h$="+h+", $L=$"+L+", $B=$"+Bperc+"%",
-#           "OMBABO SF0, $h$="+h+", $L=$"+L+", $B=$"+Bperc+"%", "OMBABO SFR, $h$="+h+", $L=$"+L+", $B=$"+Bperc+"%"]
-
-# files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFA_L"+L+"_h"+h, 
-#           "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFA_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
-# # grad = "_gradnoiseB375"
-# # files = [i +grad+"_avg"+avg for i in files]
-# files = [i +"_avg"+avg for i in files]
-# files[0]="OBABO_h0.010_avg99"
-# labels = [r"OBABO, $h$=0.01", r"OBABO, $h$="+h, r"MOBABO SF0, $h$="+h+", $L$="+L, r"MOBABO SFA, $h$="+h+", $L$="+L, 
-#           "MOBABO SFR, $h$="+h+", $L$="+L, 
-#           r"OMBABO SF0, $h$="+h+", $L$="+L, r"OMBABO SFA, $h$="+h+", $L$="+L, r"OMBABO SFR, $h$="+h+", $L$="+L]
-# labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$75%", r"MOBABO SF0, $L$="+L+", $B=$75%", 
-#           r"MOBABO SFA, $L$="+L+", $B=$75%", "MOBABO SFR, $L$="+L+", $B=$75%", 
-#           r"OMBABO SF0, $L$="+L+", $B=$75%", r"OMBABO SFA, $L$="+L+", $B=$75%", r"OMBABO SFR, $L$="+L+", $B=$75%"]
-
-## WITHOUT SFA
-files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
-# files = ["OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]
-grad = "_gradnoiseB"+B
+## file names based on simulation parameters above
+# 2 OBABO files, one with full gradient, one with partial gradient
+files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]  
 files = [i +grad+"_avg"+avg for i in files]
-files[0]="OBABO_h"+h+"_avg"+avg
-# labels = [r"OBABO, $h$="+h, r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
-#           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
+files[0]="OBABO_h"+h+"_avg33" # manually enter name of OBABO full gradient
 labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$"+Bperc, r"MOBABO SF0, $L$="+L+", $B=$"+Bperc, 
           "MOBABO SFR, $L$="+L+", $B=$"+Bperc, r"OMBABO SF0, $L$="+L+", $B=$"+Bperc, r"OMBABO SFR, $L$="+L+", $B=$"+Bperc]
-# labels = [r"OBABO, $h$="+h + ", Full Gradient", r"MOBABO SF0, $L$="+L+", $B=$10%", 
-#           "MOBABO SFR, $L$="+L+", $B=$10%", r"OMBABO SF0, $L$="+L+", $B=$10%", r"OMBABO SFR, $L$="+L+", $B=$10%"]
-##
+colors = ["r", "k", "g", "m", "orange", "yellow"] 
 
-# files = ["small_OBABO_h"+h, "small_OBABO_h"+h+"_gradnoiseB490", "large_OBABO_h"+h, "large_OBABO_h"+h+"_gradnoiseB4900"]
-# labels = [r"500 Data Points, Full Gradient", "500 Data Points, B=98%", 
-#           "5k Data Points, Full Gradient", "5k Data Points, B=98%"  ]
-# files = ["OBABO_h"+h, "OBABO_h"+h+"_gradnoiseB490", "OBABO_h"+h+"_gradnoiseB450",
-#          "OBABO_h"+h+"_gradnoiseB250","OBABO_h"+h+"_gradnoiseB100"]
-# labels = [r"B=100%", "B=98%", "B=90%", "B=50%", "B=20%"]
+# # 1 OBABO file (only with partial gradient)
+# files = ["OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h] 
+# files = [i +grad+"_avg"+avg for i in files]
+# labels = [r"OBABO, $h$="+h, r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
+#           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
+# colors = ["r", "g", "m", "orange", "yellow"]
 
-# hs = ["0.001", "0.010", "0.100"]
-# files = ["OBABO_h"+h + "_avg99" for h in hs]
-# files[-1] = "OBABO_h0.100_avg33"
-# labels = [r"OBABO, $h=0.001$", r"OBABO, $h=0.01$", r"OBABO, $h=0.1$"]
-
-# files = ["MOBABO_SF0_L"+L+"_h"+h+"_newINIT",]
-# labels = ["MOBABO SF0, $L$="+L]
-
-# colors = ["b", "orange",  "g", "c", "m","pink" , "k","r"]
-# colors = ["r", "g", "c", "m", "orange", "b", "yellow"]
-# colors = ["r", "k", "g", "c", "m", "orange", "b", "yellow"]  # in case of two OBABO (second color)
-colors = ["r", "k", "g", "m", "orange", "yellow"]  # in case of two OBABO (second color), w/o SFA
-# colors = ["r", "g", "m", "orange", "yellow"]  # in case of one OBABO (second color), w/o SFA
+#%% plot files
 
 fig, ax = plt.subplots()  # for Tconf
-fig2, ax2 = plt.subplots()
+fig2, ax2 = plt.subplots()  # for P_accept
 
-# for (file, label, c) in zip(files,labels, colors):
 for (file, label, c) in zip(files,labels, colors):
     # if c=="k":
     #     continue
@@ -122,27 +79,25 @@ for (file, label, c) in zip(files,labels, colors):
             acceptP += [float(row[2])]
 
         Tconf = np.array(Tconf)
-        acceptP = np.array(acceptP)
-        # ax.plot(n_axis, Tconf, c=c, label = label)                 
+        acceptP = np.array(acceptP)            
         ax.plot(n_axis, np.abs(Tconf-Tconf_star), c=c,  label = label) 
         ax2.plot(n_axis, acceptP, c=c, linestyle="--", label = label)
 
 
-#%%
+#%% customize plots
 
-# ax.set_xlabel(r"$N_{{Samples}}$")
 ax.set_xlabel(r"$N_{{Samples}}$")
 ax.set_ylabel(r"Error")
 # ax.set_ylim(-0.05, 0.9)
 fig.suptitle(title)
-# ax[1].legend(loc="upper right", bbox_to_anchor=(1.3,1))
 plt.tight_layout()
 ax.legend(loc="center right")
-ax.set_title(r" $ |-0.5\langle \theta \cdot \nabla U(\theta) \rangle - T_{{conf}}|$")
+ax.set_title(r" $ |-0.5\langle \theta \cdot \nabla U(\theta) \rangle - T_{{conf}}|$,  $T_{{conf}}=$" + str(Tconf_star))
 # fig.legend()
 
 ax2.set_xlabel(r"$N_{{Samples}}$")
 ax2.set_ylabel(r"$P_{{Acceptance}}$")
 fig2.suptitle(title2)
+plt.tight_layout()
 ax2.legend()
 # fig2.legend()

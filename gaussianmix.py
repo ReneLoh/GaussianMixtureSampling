@@ -1,3 +1,10 @@
+# This script generates a data set of a 1D Gaussian Mixture (GM) model, consisting
+# of the sum of two independent Gaussians to specified parameters. 
+# Furthermore, it computes the log-posterior of the means of the two Gaussians given the data and a prior.
+# It can plot the true density, the data histogram, and a heatmap of the log-posterior.
+# It relies on the functions in the script GM_functions.py.
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -16,8 +23,6 @@ plt.rc('lines', linewidth=5)
 plt.rcParams['axes.titlepad'] = 26
 
 
-
-# %% MAIN
         
 seed = 2
 np.random.seed(seed)
@@ -31,105 +36,27 @@ N = 5000
 X = GM.create_data(mus_true, sigs, a_s, N)
 # GM.write_to_file(X, "GM_data_5000.csv")
 
+## plot density and data histogram
 # xrange = (-12.5,12.5)
 # plt.hist(X,100,xrange, density=True, label="Data Distribution") 
 # x = np.linspace(xrange[0], xrange[1],1000)
 # y = GM.gaussmix(*mus_true, x, sigs,a_s)
 # plt.plot(x,y, label="Underlying Density")
 
-#prior specifics
+# prior specifics
 prior_func = GM.prior_gauss
 (m1,m2,sig0) = (0,0,5)
 prior_params = (m1,m2,sig0)
 
-# # evaluate the posterior on grid
-# mu1, mu2 = (np.linspace(-7.5,7.5,1000), np.linspace(-7.5,7.5,1000))
-mu1, mu2 = (np.linspace(-5,-1,1000), np.linspace(1,5,1000))
-POST = GM.posterior_plot(mu1[:,None], mu2[None,:], X, GM.gaussmix, (sigs, a_s), prior_func, prior_params)
-plt.imshow(POST, cmap=cm.jet, extent=((mu2[0], mu2[-1], mu1[-1], mu1[0])))
+## evaluate the posterior on grid
+mu1, mu2 = (np.linspace(-5,-1,1000), np.linspace(1,5,1000))  # grid
+POST = GM.posterior_plot(mu1[:,None], mu2[None,:], X, GM.gaussmix, (sigs, a_s), prior_func, prior_params)  # compute log-posterior
+
+plt.imshow(POST, cmap=cm.jet, extent=((mu2[0], mu2[-1], mu1[-1], mu1[0])))  # plot result
 plt.clim(POST.max()-20,POST.max())
 plt.colorbar()
 plt.xlabel(r"$\mu_{2}$")
 plt.ylabel(r"$\mu_{1}$")
-mu1_star = mu1[ np.where( abs(POST-POST.max())<0.0001 )[0][0] ]
+
+mu1_star = mu1[ np.where( abs(POST-POST.max())<0.0001 )[0][0] ]  # find modes of log-posterior
 mu2_star = mu2[ np.where( abs(POST-POST.max())<0.0001 )[1][0] ]
-
-
-#%% simulation params
-theta0 = np.array([2.,3.])
-p0 = np.zeros(2, float)
-N_0 = 1e3
-# Ns = [100, 500, 100000]
-h = 0.05
-# hs = [0.1]
-# hs = [ 1, 0.5, 0.1]
-# T = [1e-3, 1e-2, 1e-1]
-T = 1
-gamma = 1
-
-L=20
-SF=1
-# label_MH_SF = r"MH-only, $L$={} $h=${}".format(L,h)
-label_MH_SF = r"SF, $L$={}".format(L)
-
-xrange = (-5, 10)
-title = r"GM Posterior Sampling"
-
-
-# %%
-fig, ax = plt.subplots(1,2)
-
-force_params = (T, GM.gaussmix, sigs, a_s, X)
-# for N_0 in Ns:
-# for h in hs:
-for seed in seeds:
-    np.random.seed(seed)
-    TAVG_OBABO = GM.OBABO_simu(theta0, p0, int(N_0), h, T, gamma, GM.noisy_force, force_params)
-    # TAVG_MH = OBABO_simu_MH(theta0, p0, int(N_0/(L+1)), h, T, gamma, L, SF, noisy_force, force_params, posterior,
-                        # X, gaussmix, (sigs, a_s))
-    
-    # histo_OBABO, bins = np.histogram(theta_OBABO[:,0], bins=200, range=xrange, density=True)
-    # midx = (bins[0:-1]+bins[1:])/2
-    # ax[0].plot(midx, histo_OBABO, label=r"$N$={}".format(N_0))
-    # histo_OBABO, bins = np.histogram(theta_OBABO[:,1], bins=200, range=xrange, density=True)
-    # midx = (bins[0:-1]+bins[1:])/2
-    # ax[1].plot(midx, histo_OBABO, label=r" $N$={}".format(N_0))
-
-    ax[0].plot(np.arange(0,N_0+1), np.abs(TAVG_OBABO[:,0]-mu1_star), 
-                        label=r"OBABO, $h=${}".format(h))
-    ax[1].plot(np.arange(0,N_0+1), np.abs(TAVG_OBABO[:,1]-mu2_star), 
-                        label=r"OBABO, $h=${}".format(h))
-    
-    # ax[0].plot(np.arange(0,N_0+1, (L+1)), np.abs(TAVG_MH[:,0]-mu1_star), 
-    #                     label=label_MH_SF+r", $h$={}".format(h))
-    # ax[1].plot(np.arange(0,N_0+1, (L+1)), np.abs(TAVG_MH[:,1]-mu2_star), 
-    #                     label=label_MH_SF+r", $h$={}".format(h))
-
-
-    
-#%%
-# fig, ax = plt.subplots()
-# histo_OBABO, bins = np.histogram(theta_OBABO[:,0], bins=200, range=xrange, density=True)
-# midx = (bins[0:-1]+bins[1:])/2
-# ax.plot(midx, histo_OBABO, label=r"mu1")
-# histo_OBABO, bins = np.histogram(theta_OBABO[:,1], bins=200, range=xrange, density=True)
-# midx = (bins[0:-1]+bins[1:])/2
-# ax.plot(midx, histo_OBABO, label=r"mu2")
-
-# plt.title(title)
-# plt.ylabel("|$\hat{{\mu}}_{{1}}-\mu_{{1}}^{{*}}$|")
-# plt.xlabel(r"$N$")
-# plt.legend()
-
-
-
-fig.suptitle(title)
-ax[0].set_ylabel("|$\hat{{\mu}}_{{1}}-\mu_{{1}}^{{*}}$|")
-ax[1].set_ylabel("|$\hat{{\mu}}_{{2}}-\mu_{{2}}^{{*}}$|")
-ax[0].set_xlabel(r"$N$")
-ax[1].set_xlabel(r"$N$")
-ax[0].set_yscale("log")
-ax[0].set_xscale("log")
-ax[1].set_yscale("log")
-ax[1].set_xscale("log")
-plt.legend()
