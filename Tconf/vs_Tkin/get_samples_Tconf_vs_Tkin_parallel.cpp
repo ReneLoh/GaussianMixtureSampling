@@ -3,7 +3,7 @@ This script samples the posterior density of the means of two independent Gaussi
 It uses Metropolized Langevin integrators (given by the "OBABO" scheme) and uses full gradients or stochastic gradients obtained by data subsampling.
 Using K processors, it draws K trajectories simultaneously, and averages over them (also in time) before printing out the results.
 
-This version tracks the configurational temperature as an observable, and the Metropolis acceptance probability in time.
+This version tracks configurational AND kinetic temperature as an observable, and the Metropolis acceptance probability in time.
 */
 
 
@@ -39,7 +39,7 @@ double fmu1, fmu2;
 
 
 struct measurement{
-vector <double> Tconf, acceptP;
+vector <double> Tconf, Tkin, acceptP;
 };
 
 double likelihood_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, const double x);
@@ -127,15 +127,18 @@ MPI_Barrier(comm);
 measurement results_avg;
 if( rank==0 ){
 	 results_avg.Tconf.resize(results.Tconf.size());  // do only on rank 0 to save RAM 
+	 results_avg.Tkin.resize(results.Tkin.size());
 	 results_avg.acceptP.resize(results.acceptP.size());
 	 
 }	 
 
 MPI_Reduce(&results.Tconf[0], &results_avg.Tconf[0], results.Tconf.size(), MPI_DOUBLE, MPI_SUM, 0, comm);
+MPI_Reduce(&results.Tkin[0], &results_avg.Tkin[0], results.Tkin.size(), MPI_DOUBLE, MPI_SUM, 0, comm);
 MPI_Reduce(&results.acceptP[0], &results_avg.acceptP[0], results.acceptP.size(), MPI_DOUBLE, MPI_SUM, 0, comm);
 
 for (int i=0; i<results_avg.Tconf.size(); ++i){
 	results_avg.Tconf[i] /= nr_proc;
+	results_avg.Tkin[i] /= nr_proc;
 	results_avg.acceptP[i] /= nr_proc;
 }
 
@@ -149,9 +152,11 @@ if( rank==0 ){
 			if(i<=n-1) n=i;
 			for(int j=i-n; j<i; ++j){
 				results_avg.Tconf[i] += results_avg.Tconf[j];
+				results_avg.Tkin[i] += results_avg.Tkin[j];
 				results_avg.acceptP[i] += results_avg.acceptP[j];					
 			}
 				results_avg.Tconf[i] /= n+1 ;
+				results_avg.Tkin[i] /= n+1 ;
 				results_avg.acceptP[i] /= n+1 ; 				
 		}	
 		
@@ -168,7 +173,7 @@ if( rank==0 ){
 	ofstream file {final_label};
 	cout<<"Writing to file...\n";
 	for(int i=0; i<results_avg.Tconf.size(); i+=ndist){
-		file << i*n_meas << " " << results_avg.Tconf.at(i) << " " << results_avg.acceptP.at(i) << "\n";
+		file << i*n_meas << " " << results_avg.Tconf.at(i) << " " << results_avg.Tkin.at(i) << " " << results_avg.acceptP.at(i) << "\n";
 	}
 	file.close();
 }
@@ -190,9 +195,10 @@ measurement OBABO_simu(const params param0, const size_t N, const double h, cons
 	forces force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, B, sig0);    					// HERE FORCES!!!!
 	forces full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
 	
-	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
+	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
 	meas.Tconf[0] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);
+	meas.Tkin[0] = 0.5 * (theta.p1*theta.p1 + theta.p2*theta.p2);
 
 	int k=1;
 
@@ -221,7 +227,8 @@ measurement OBABO_simu(const params param0, const size_t N, const double h, cons
 
 		if(i%n_meas == 0 ) {
 			full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);		// HERE FORCES!!!!	
-			meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);				
+			meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);
+			meas.Tkin[k] = 0.5 * (theta.p1*theta.p1 + theta.p2*theta.p2);				
 			++k;		
 		}
 		if(i%int(1e6)==0) cout<<"Iteration "<<i<<" done!"<<endl;	
@@ -249,9 +256,10 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 	forces force_curr = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    		// HERE FORCES!!!!
 	forces full_force = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
 	
-	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
+	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
 	meas.Tconf[0] = -0.5 * (theta_curr.mu1*full_force.fmu1 + theta_curr.mu2*full_force.fmu2);
+	meas.Tkin[0] = 0.5 * (theta_curr.p1*theta_curr.p1 + theta_curr.p2*theta_curr.p2);
 	
 	int k=1;
 
@@ -307,7 +315,8 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 		if( uniform(twister) < min(1., MH) ){ 												// ACCEPT SAMPLE
 			if(i%n_meas == 0 ) {
 				full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// HERE FORCES					
-				meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);				
+				meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);
+				meas.Tkin[k] = 0.5 * (theta.p1*theta.p1 + theta.p2*theta.p2);				
 				meas.acceptP[k] = min(1., MH);	
 				++k;		
 			}			
@@ -323,7 +332,8 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 		else{ 																				 // REJECT SAMPLE		
 
 			if(i%n_meas == 0 ) {
-				meas.Tconf[k] = meas.Tconf[k-1];			
+				meas.Tconf[k] = meas.Tconf[k-1];
+				meas.Tkin[k] = meas.Tkin[k-1];			
 				meas.acceptP[k] = min(1., MH);	
 				++k;		
 			}	
@@ -358,9 +368,10 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 	forces force_curr = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    		// HERE FORCES!!!!
 	forces full_force = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
 	
-	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
+	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
 	meas.Tconf[0] = -0.5 * (theta_curr.mu1*full_force.fmu1 + theta_curr.mu2*full_force.fmu2);
+	meas.Tkin[0] = 0.5 * (theta_curr.p1*theta_curr.p1 + theta_curr.p2*theta_curr.p2);
 	
 	int k=1;
 
@@ -413,7 +424,8 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 
 			if(i%n_meas == 0 ) {
 				full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// HERE FORCES					
-				meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);				
+				meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);
+				meas.Tkin[k] = 0.5 * (theta.p1*theta.p1 + theta.p2*theta.p2);				
 				meas.acceptP[k] = min(1., MH);	
 				++k;			
 			}			
@@ -430,7 +442,8 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 		else{  // REJECT SAMPLE
 			
 			if(i%n_meas == 0 ) {
-				meas.Tconf[k] = meas.Tconf[k-1];			
+				meas.Tconf[k] = meas.Tconf[k-1];
+				meas.Tkin[k] = meas.Tkin[k-1];			
 				meas.acceptP[k] = min(1., MH);	
 				++k;			
 			}	
