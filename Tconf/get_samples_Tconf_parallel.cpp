@@ -43,9 +43,9 @@ vector <double> Tconf, acceptP;
 };
 
 double likelihood_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, const double x);
-double U_pot_GM( const double T, const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
+double U_pot_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
 					  const vector <double>& Xdata, const double sig0);
-forces get_noisy_force_GM(const double T, const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
+forces get_noisy_force_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
 					  			  vector <double>& Xdata, const size_t B, const double sig0);
 measurement OBABO_simu(const params param0, const size_t N, const double h, const double T, const double gamma, vector <double>& Xdata,	
 									const size_t B, const double sig1, const double sig2, const double a1, const double a2, const size_t n_meas, const double sig0);
@@ -187,8 +187,8 @@ measurement OBABO_simu(const params param0, const size_t N, const double h, cons
 	auto t1 = chrono::high_resolution_clock::now();
 
    params theta = param0; 
-	forces force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, B, sig0);    					// HERE FORCES!!!!
-	forces full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
+	forces force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, B, sig0);    					// HERE FORCES!!!!
+	forces full_force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
 	
 	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
@@ -209,7 +209,7 @@ measurement OBABO_simu(const params param0, const size_t N, const double h, cons
 		theta.mu1 += h*theta.p1;															// A step							
 		theta.mu2 += h*theta.p2;		
 
-		force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, B, sig0);   // HERE FORCES!!!!
+		force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, B, sig0);   // HERE FORCES!!!!
 
 		theta.p1 += 0.5*h*force.fmu1;														 // B step
 		theta.p2 += 0.5*h*force.fmu2;		
@@ -220,7 +220,7 @@ measurement OBABO_simu(const params param0, const size_t N, const double h, cons
 		theta.p2 = sqrt(a)*theta.p2 + sqrt((1-a)*T)*Rn2;
 
 		if(i%n_meas == 0 ) {
-			full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);		// HERE FORCES!!!!	
+			full_force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);		// HERE FORCES!!!!	
 			meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);				
 			++k;		
 		}
@@ -246,8 +246,8 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 
    params theta_curr = param0; 
 
-	forces force_curr = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    		// HERE FORCES!!!!
-	forces full_force = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
+	forces force_curr = get_noisy_force_GM(theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    		// HERE FORCES!!!!
+	forces full_force = get_noisy_force_GM(theta_curr, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
 	
 	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
@@ -286,7 +286,7 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 			theta.mu1 += h*theta.p1;							// A step
 			theta.mu2 += h*theta.p2;
 			
-			force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, B, sig0);   // HERE FORCES!!!!
+			force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, B, sig0);   // HERE FORCES!!!!
 
 			theta.p1 += 0.5*h*force.fmu1;						// B step
 			theta.p2 += 0.5*h*force.fmu2;			
@@ -300,13 +300,13 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 		}
 		
 		// MH criterion
-		U1 = U_pot_GM( T, theta, sig1, sig2, a1, a2, Xdata, sig0);					//HERE UPOTS!!!
-		U0 = U_pot_GM( T, theta_curr, sig1, sig2, a1, a2, Xdata, sig0);
+		U1 = U_pot_GM(theta, sig1, sig2, a1, a2, Xdata, sig0);					//HERE UPOTS!!!
+		U0 = U_pot_GM(theta_curr, sig1, sig2, a1, a2, Xdata, sig0);
 		MH = exp( (-1/T) * (U1 - U0 + kin_energy) );					
 		
 		if( uniform(twister) < min(1., MH) ){ 												// ACCEPT SAMPLE
 			if(i%n_meas == 0 ) {
-				full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// HERE FORCES					
+				full_force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// HERE FORCES					
 				meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);				
 				meas.acceptP[k] = min(1., MH);	
 				++k;		
@@ -355,8 +355,8 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 
    params theta_curr = param0; 
 	
-	forces force_curr = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    		// HERE FORCES!!!!
-	forces full_force = get_noisy_force_GM(T, theta_curr, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
+	forces force_curr = get_noisy_force_GM(theta_curr, sig1, sig2, a1, a2, Xdata, B, sig0);	    		// HERE FORCES!!!!
+	forces full_force = get_noisy_force_GM(theta_curr, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// to compute Tconf		
 	
 	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
@@ -393,7 +393,7 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 			theta.mu1 += h*theta.p1;							// A step
 			theta.mu2 += h*theta.p2;
 			
-			force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, B, sig0);   // HERE FORCES!!!!
+			force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, B, sig0);   // HERE FORCES!!!!
 
 			theta.p1 += 0.5*h*force.fmu1;						// B step
 			theta.p2 += 0.5*h*force.fmu2;			
@@ -402,8 +402,8 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 		}
 		
 		// MH criterion
-		U0 = U_pot_GM( T, theta_curr, sig1, sig2, a1, a2, Xdata, sig0);	//HERE UPOTS!!!
-		U1 = U_pot_GM( T, theta, sig1, sig2, a1, a2, Xdata, sig0);
+		U0 = U_pot_GM(theta_curr, sig1, sig2, a1, a2, Xdata, sig0);	//HERE UPOTS!!!
+		U1 = U_pot_GM(theta, sig1, sig2, a1, a2, Xdata, sig0);
 		K0 = 0.5*(theta_curr.p1*theta_curr.p1 + theta_curr.p2*theta_curr.p2);	
 		K1 = 0.5*(theta.p1*theta.p1 + theta.p2*theta.p2); 	
 		
@@ -412,7 +412,7 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 		if( uniform(twister) < min(1., MH) ){ 						// ACCEPT SAMPLE
 
 			if(i%n_meas == 0 ) {
-				full_force = get_noisy_force_GM(T, theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// HERE FORCES					
+				full_force = get_noisy_force_GM(theta, sig1, sig2, a1, a2, Xdata, Xdata.size(), sig0);	// HERE FORCES					
 				meas.Tconf[k] = -0.5 * (theta.mu1*full_force.fmu1 + theta.mu2*full_force.fmu2);				
 				meas.acceptP[k] = min(1., MH);	
 				++k;			
@@ -468,7 +468,7 @@ double likelihood_GM(const params& theta, const double sig1, const double sig2, 
 	return p;
 }
 
-double U_pot_GM( const double T, const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
+double U_pot_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
 					  const vector <double>& Xdata, const double sig0){
 	double U = 0;
 	for(int i=0; i<Xdata.size(); ++i){
@@ -479,7 +479,7 @@ double U_pot_GM( const double T, const params& theta, const double sig1, const d
 }
 
 
-forces get_noisy_force_GM(const double T, const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
+forces get_noisy_force_GM(const params& theta, const double sig1, const double sig2, const double a1, const double a2, 
 					  			  vector <double>& Xdata, const size_t B, const double sig0){
 	forces F{0,0};
 	double P, e1, e2, x, scale;

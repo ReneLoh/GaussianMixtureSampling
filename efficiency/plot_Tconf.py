@@ -31,27 +31,27 @@ title2 = r"GM Sampling, 500 Data Points, Grad. Noise"
 # simulation parameters specifying file names to be read
 h = "0.010"
 Tconf_star = 5
-L="10"
-B="250"
+L="1"
+B="25"
 grad = "_gradnoiseB"+B
 Bperc = "50%"
-avg = "99"
+avg = "66"
 
 # ## manual entered file names and plot labels
-files = ["OBABO_h0.010_avg66", "OBABO_h0.010_gradnoiseB25_avg66", "OMBABO_SFR_L1_h0.010_gradnoiseB25_avg66"]
-labels = [r"OBABO Full Gradient", "OBABO B=5%", "OMBABO SFR, L=1, B=5%"]
+files = ["OBABO_h0.010", "OBABO_h0.010_gradnoiseB250", "OBABO_h0.010_gradnoiseB25","OBABO_h0.010_gradnoiseB5", 
+         "OMBABO_SFR_L1_h0.010_gradnoiseB250","OMBABO_SFR_L1_h0.010_gradnoiseB25", "OMBABO_SFR_L1_h0.010_gradnoiseB5"]
+labels = [r"OBABO Full Gradient", "OBABO B=50%", "OBABO B=5%", "OBABO B=1%", "OMBABO SFR, L=1, B=50%", "OMBABO SFR, L=1, B=5%", "OMBABO SFR, L=1, B=1%"]
 
 # files = ["OBABO_h0.075_avg99", "OBABO_h0.010_avg99", "OBABO_h0.0050_avg99",  "OBABO_h0.0010_avg99"]
 # labels = [r"OBABO, h=0.075", "OBABO, h=0.01", "OBABO, h=0.005", "OBABO, h=0.001"]
 
 
 ## file names based on simulation parameters above
-# 2 OBABO files, one with full gradient, one with partial gradient
-# files = ["OBABO_h"+h, "OBABO_h"+h, "MOBABO_SF0_L"+L+"_h"+h, "MOBABO_SFR_L"+L+"_h"+h, "OMBABO_SF0_L"+L+"_h"+h, "OMBABO_SFR_L"+L+"_h"+h]  
+#2 OBABO files, one with full gradient, one with partial gradient
+# files = ["OBABO_h"+h, "OBABO_h"+h, "OMBABO_SFR_L"+L+"_h"+h]  
 # files = [i +grad+"_avg"+avg for i in files]
-# files[0]="OBABO_h"+h+"_avg33" # manually enter name of OBABO full gradient
-# labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$"+Bperc, r"MOBABO SF0, $L$="+L+", $B=$"+Bperc, 
-#           "MOBABO SFR, $L$="+L+", $B=$"+Bperc, r"OMBABO SF0, $L$="+L+", $B=$"+Bperc, r"OMBABO SFR, $L$="+L+", $B=$"+Bperc]
+# files[0]="OBABO_h"+h+"_avg66" # manually enter name of OBABO full gradient
+# labels = [r"OBABO, $h$="+h + ", Full Gradient", "OBABO, $h$="+h+", $B=$"+Bperc, r"OMBABO SFR, $L$="+L+", $B=$"+Bperc]
 # colors = ["r", "k", "g", "m", "orange", "yellow"] 
 
 # # 1 OBABO file (only with partial gradient)
@@ -59,7 +59,9 @@ labels = [r"OBABO Full Gradient", "OBABO B=5%", "OMBABO SFR, L=1, B=5%"]
 # files = [i +grad+"_avg"+avg for i in files]
 # labels = [r"OBABO, $h$="+h, r"MOBABO SF0, $L$="+L, r"MOBABO SFA, $L$="+L, "MOBABO SFR, $L$="+L, 
 #           r"OMBABO SF0, $L$="+L, r"OMBABO SFA, $L$="+L, r"OMBABO SFR, $L$="+L]
-colors = ["r", "g", "m", "orange", "yellow"]
+
+
+colors = ["r", "g", "m", "b", "orange", "cyan", "k"]
 
 #%% plot files
 
@@ -70,7 +72,7 @@ for (file, label, c) in zip(files,labels, colors):
     # if c=="k":
     #     continue
     print(name+file)
-    with open(name+file) as csv_file:
+    with open(name+file+"_avg"+avg) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=' ')
         Tconf = []
         acceptP = []
@@ -83,22 +85,23 @@ for (file, label, c) in zip(files,labels, colors):
         Tconf = np.array(Tconf)
         acceptP = np.array(acceptP)            
         ax.plot(n_axis, np.abs(Tconf-Tconf_star), c=c,  label = label) 
-        ax2.plot(n_axis, acceptP, c=c, linestyle="--", label = label)
+        if not np.all(acceptP == 1):
+            ax2.plot(n_axis, acceptP, c=c, linestyle="--", label = label)
 
 
 #%% customize plots
 
-ax.set_xlabel(r"$N_{{Samples}}$")
+ax.set_xlabel(r"Time [$\Delta t_{{\mathrm{Full \: Gradient}}}$]")
 ax.set_ylabel(r"Error")
 # ax.set_ylim(-0.05, 0.9)
 fig.suptitle(title)
 plt.tight_layout()
 ax.legend(loc="center right")
-ax.set_title(r" $ |-0.5\langle \theta \cdot \nabla U(\theta) \rangle - T_{{conf}}|$,  $T_{{conf}}=$" + str(Tconf_star))
+ax.set_title(r" $ |-0.5\langle \theta \cdot \nabla U(\theta) \rangle - T_{{conf}}|$")
 # fig.legend()
 
-ax2.set_xlabel(r"$N_{{Samples}}$")
-ax2.set_ylabel(r"$P_{{Acceptance}}$")
+ax2.set_xlabel(r"Time [$\Delta t_{{\mathrm{Full \: Gradient}}}$]")
+ax2.set_ylabel(r"$P_{{\mathrm{Acceptance}}}$")
 fig2.suptitle(title2)
 plt.tight_layout()
 ax2.legend()
