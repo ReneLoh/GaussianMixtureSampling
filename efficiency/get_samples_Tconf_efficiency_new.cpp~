@@ -333,8 +333,12 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
 	meas.Tconf[0] = -0.5 * (theta_curr.mu1*full_force.fmu1 + theta_curr.mu2*full_force.fmu2);
+	cout<<"theta_curr: "<<theta_curr.mu1<<"  "<<theta_curr.mu2<<"  force_curr: "<<force_curr.fmu1<<"  "<<force_curr.fmu2<< "  full force "<<full_force.fmu1<<"  "<<full_force.fmu2<<endl; 	
+	
 	int k=1;
 
+
+	
 	double Rn1, Rn2;
 	normal_distribution<> normal{0,1};
 	uniform_real_distribution<> uniform(0, 1); 
@@ -415,7 +419,7 @@ measurement MOBABO_simu(const params param0, const size_t N, const double h, con
 		if(i%int(1e6)==0) cout<<"Iteration "<<i<<" done!"<<endl;
 		
 	}
-
+	cout<<" final position: "<<theta_curr.mu1 << "  "<<theta_curr.mu2<<endl;
 	cout <<"Acceptance probability was "<<float(ctr)/N<<endl;
 	auto t2 = chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::seconds>(t2 - t1);
@@ -470,6 +474,8 @@ measurement OMBABO_simu(const params param0, const size_t N, const double h, con
 	measurement meas{vector <double> (N/n_meas + 1), vector <double> (N/n_meas + 1, 1)};		
 
 	meas.Tconf[0] = -0.5 * (theta_curr.mu1*full_force.fmu1 + theta_curr.mu2*full_force.fmu2);
+	cout<<"theta_curr: "<<theta_curr.mu1<<"  "<<theta_curr.mu2<<"  force_curr: "<<force_curr.fmu1<<"  "<<force_curr.fmu2<< "  full force "<<full_force.fmu1<<"  "<<full_force.fmu2<<endl; 		
+	
 	int k=1;
 
 	double Rn1, Rn2;

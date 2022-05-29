@@ -32,9 +32,9 @@ seeds = [1]
 mus_true = [-2.5,2.5]
 sigs = [3,0.5]
 a_s = [0.8, 0.2]
-N = 5000
+N = 50000
 X = GM.create_data(mus_true, sigs, a_s, N)
-GM.write_to_file(X, "GM_data_5000.csv")
+GM.write_to_file(X, "GM_data_50000.csv")
 
 ## plot density and data histogram
 # xrange = (-12.5,12.5)
